@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fleet Management Intent Classifier — Roshan Mishra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">LLM Evaluation</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">Ollama</span>
+        <span class="tag">Pydantic</span>
+        <span class="tag">Qwen 2.5 3B</span>
+        <span class="tag">Python</span>
+      </div>
+      <h1 class="project-detail-title">Fleet Management<br />Intent Classifier</h1>
+      <p class="project-detail-subtitle">A local LLM system that classifies enterprise fleet queries into structured intents and extracts typed slots. No cloud API, zero data leakage, 91% accuracy.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item">
+          <strong>Type</strong> Self-hosted AI system
+        </div>
+        <div class="project-meta-item">
+          <strong>Stack</strong> Python, FastAPI, Ollama, Pydantic
+        </div>
+        <div class="project-meta-item">
+          <strong>Models</strong> Qwen 2.5 3B, TinyLlama 1.1B
+        </div>
+        <div class="project-meta-item">
+          <a href="https://github.com/RoshanMishra0" target="_blank" rel="noopener" style="color: var(--accent);">GitHub →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Problem Statement</h2>
+      <p>Enterprise fleet fuel card platforms receive natural language commands from fleet managers, drivers, and admins. Queries like "find nearest truck stop with DEF within 20 miles" or "disable my card 987654 forever" or "generate a fuel code" need to be classified into the right intent and have their slots extracted so the platform can route them to the correct API call.</p>
+      <p>The standard approach is GPT-4 via cloud API. But this has three problems for enterprise use: ongoing per-query cost at scale, data privacy risk (card numbers, emails, and operational data sent to external servers), and latency variance on cloud endpoints.</p>
+      <p>The question this project answers: <strong style="color: var(--text-primary);">can a locally-hosted small LLM match cloud API quality for structured NLU tasks?</strong></p>
+
+      <div class="callout">
+        <strong>Hypothesis tested:</strong> A well-prompted 3B parameter local model can achieve &gt;85% intent accuracy on a business-specific taxonomy (8 intents, complex slot extraction), with 100% JSON schema compliance, replacing GPT-4 for this narrow task at zero marginal cost.
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="content-section">
+    <div class="container">
+      <h2>System Architecture</h2>
+      <p>The system is a FastAPI service wrapping an Ollama inference backend. The prompt pipeline constructs a structured system prompt containing the intent taxonomy and slot schema, sends it with the user query, then validates and parses the LLM output through Pydantic.</p>
+
+      <div class="arch-diagram"><span class="arch-accent">User Query</span>
+    │
+    ▼
+<span class="arch-accent">FastAPI Endpoint</span>  /classify
+    │
+    ▼
+<span class="arch-accent">Prompt Builder</span>
+    ├── System prompt with intent taxonomy
+    ├── Slot definitions per intent
+    └── Output schema (JSON)
+    │
+    ▼
+<span class="arch-accent">Ollama Local Inference</span>
+    ├── Qwen 2.5 3B  (primary)
+    └── TinyLlama 1.1B  (baseline comparison)
+    │
+    ▼
+<span class="arch-accent">JSON Parser + Pydantic Validator</span>
+    ├── Schema validation
+    ├── Type coercion
+    └── Error handling (malformed output)
+    │
+    ▼
+<span class="arch-accent">Structured Response</span>  { intent, slots, confidence }
+    │
+    ▼
+<span class="arch-dim">Evaluation Pipeline  →  Metrics Store</span></div>
+
+      <div class="two-col">
+        <div class="info-card">
+          <h4>Why Ollama?</h4>
+          <p>Ollama provides a clean HTTP API over local model inference, same interface regardless of model. This made swapping Qwen for TinyLlama a one-line config change, which was critical for running controlled comparisons.</p>
+        </div>
+        <div class="info-card">
+          <h4>Why Pydantic for output?</h4>
+          <p>Regex parsing of LLM JSON is fragile. Pydantic enforces the schema at parse time and gives explicit validation errors. It also coerces types, for example converting radius from a string to a float when the slot schema defines a numeric field.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROMPT DESIGN -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Prompt Engineering Decisions</h2>
+      <p>The system prompt was the primary lever for performance. The final architecture went through three major iterations:</p>
+      <ul>
+        <li><strong style="color: var(--text-primary);">V1: Naive instruction.</strong> "Extract the intent and entities from this fleet query." Result: inconsistent JSON structure, ~55% accuracy. The model invented slot names.</li>
+        <li><strong style="color: var(--text-primary);">V2: Taxonomy injection.</strong> Listed all valid intents explicitly with one-line descriptions. Accuracy jumped to ~78%. JSON still occasionally malformed.</li>
+        <li><strong style="color: var(--text-primary);">V3: Schema-first prompt.</strong> Included the full Pydantic-derived JSON schema in the system prompt alongside a few-shot example. Intent accuracy: 91.11%. JSON valid rate: 100%.</li>
+      </ul>
+
+      <div class="code-block"><span class="cmt"># System prompt structure (V3) — real intents from llm_extractor.py</span>
+<span class="kw">SYSTEM_PROMPT</span> = <span class="str">"""
+You are a fleet management intent classification and slot extraction engine.
+Classify the user query into exactly one supported intent and extract relevant slots.
+
+Supported intents:
+- FUEL_SEARCH       (find fuel stations by type, radius, amenities)
+- CARD_MANAGEMENT   (activate / hold / block fleet cards)
+- CARD_UNLOCK       (unlock a card — only when "unlock" is explicit)
+- USER_MANAGEMENT   (deactivate users by email)
+- FUEL_CODE         (generate / cancel / list / status)
+- PROMPTED_ID_MANAGEMENT  (create / activate / change driver PINs)
+- NOTIFICATION_MANAGEMENT (enable / disable / details alerts)
+- UNKNOWN           (analytics, reports, or unclear queries)
+
+JSON schema:
+{
+  "intent": "UNKNOWN",
+  "action": null,
+  "merchant_type": null,   // TS | GS | FS
+  "fuel_type": null,       // Diesel | Gas | CNG | LNG | DEF | Reefer
+  "radius": null,
+  "radius_unit": null,     // "miles" | "km"
+  "amenities": [],         // ["ATM", "TrkPrkPave", ...]
+  "card_number": null,
+  "email": null,
+  "pagination_action": null,
+  "confidence": 0.0
+}
+
+Return ONLY valid JSON. No explanation. No markdown.
+"""</span></div>
+
+      <div class="callout">
+        <strong>Key insight:</strong> Embedding the JSON schema directly (not a natural language description of it) reduced hallucinated slot names from ~30% of responses to 0%. The model treats the schema as a hard constraint, not a suggestion.
+      </div>
+    </div>
+  </div>
+
+  <!-- EVALUATION -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Evaluation Results</h2>
+      <p>Evaluation was run on 45 manually prepared test cases covering all 8 supported intents, with varying phrasing complexity. Both models ran on the same hardware (local CPU), same prompt template, same Ollama version.</p>
+
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Metric</th>
+            <th>Qwen 2.5 3B</th>
+            <th>TinyLlama 1.1B</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Intent Accuracy</td>
+            <td class="winner">91.11%</td>
+            <td class="loser">28.89%</td>
+          </tr>
+          <tr>
+            <td>Slot Accuracy</td>
+            <td class="winner">89.68%</td>
+            <td class="loser">20.63%</td>
+          </tr>
+          <tr>
+            <td>Exact Match Accuracy</td>
+            <td class="winner">77.78%</td>
+            <td class="loser">4.44%</td>
+          </tr>
+          <tr>
+            <td>Valid JSON Rate</td>
+            <td class="winner">100%</td>
+            <td class="winner">100%</td>
+          </tr>
+          <tr>
+            <td>Average Latency</td>
+            <td class="winner">4.4s</td>
+            <td class="loser">8.6s</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>TinyLlama's 100% valid JSON rate with 28.89% intent accuracy reveals a specific failure mode: the model learned to produce valid JSON with hallucinated intent values — structurally correct output, semantically wrong. This is why valid JSON rate alone is a misleading metric for structured NLU.</p>
+
+      <p>Qwen 2.5 3B's higher latency than TinyLlama despite being a larger model is explained by the hardware. The inference was CPU-bound, where Qwen's architecture incurs more per-token compute than TinyLlama's simpler architecture despite being faster at the task level.</p>
+    </div>
+  </div>
+
+  <!-- WHAT I'D DO DIFFERENTLY -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What I'd Do Differently</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Add a confidence threshold gate.</strong> Currently all outputs are returned regardless of confidence. A threshold below 0.7 should trigger a fallback or human review path, not a silent low-quality response.</li>
+        <li><strong style="color: var(--text-primary);">Test Mistral 7B and Phi-3.</strong> Qwen 2.5 3B performs well but these models are worth evaluating, especially Phi-3 Mini which punches above its weight on instruction following.</li>
+        <li><strong style="color: var(--text-primary);">GPU-accelerated inference.</strong> The latency numbers (4.4s) are CPU-bound. With a consumer GPU these would drop below 500ms, which changes the production viability story entirely.</li>
+        <li><strong style="color: var(--text-primary);">Fine-tuning on domain data.</strong> The current approach is zero-shot prompting. LoRA fine-tuning on 500-1000 labeled fleet queries would likely push accuracy above 97% with a smaller model.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2025 Roshan Mishra</span>
+        <a href="../index.html#projects" style="color: var(--text-muted); font-size: 13px;">← All Projects</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>

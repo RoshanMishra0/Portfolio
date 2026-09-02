@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Agent — Gmail AI Copilot — Roshan Mishra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">Agentic UI</span>
+        <span class="tag accent">Tool Use</span>
+        <span class="tag">Next.js 15</span>
+        <span class="tag">TypeScript</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">Gmail API</span>
+        <span class="tag">Zustand</span>
+      </div>
+      <h1 class="project-detail-title">UI Agent:<br />Gmail AI Copilot</h1>
+      <p class="project-detail-subtitle">An AI assistant that doesn't just answer questions about your inbox. It controls the Gmail UI programmatically. Natural language in, UI actions out.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item">
+          <strong>Frontend</strong> Next.js 15 + TypeScript + Tailwind
+        </div>
+        <div class="project-meta-item">
+          <strong>AI layer</strong> Python FastAPI action planner
+        </div>
+        <div class="project-meta-item">
+          <strong>Auth</strong> Gmail OAuth + Pub/Sub webhook
+        </div>
+        <div class="project-meta-item">
+          <a href="https://github.com/RoshanMishra0" target="_blank" rel="noopener" style="color: var(--accent);">GitHub →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT MAKES THIS DIFFERENT -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What Makes This Different from a Chatbot</h2>
+      <p>Most "AI email assistants" are chatbots that answer questions about your inbox. This is something different: the AI controls the actual UI state. When you type "open the latest email from David", the assistant doesn't respond with a summary. It navigates the inbox, finds the email, and opens it. The UI changes.</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <h4>A chatbot does</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 13px; color: var(--text-secondary);">→ "Your latest email from David is about the project update."</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Answers stay in chat</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ User still has to navigate manually</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h4>This agent does</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Opens the email in the email detail view</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Fills compose fields with the right recipient + subject</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Applies inbox filters and updates the list</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ UI state changes, not just chat state</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Architecture</h2>
+
+      <div class="arch-diagram">User types natural language command
+           │
+           ▼
+<span class="arch-accent">Next.js Frontend</span>  (TypeScript + App Router)
+    ├── Inbox, Sent, Compose, Email Detail views
+    ├── Assistant panel (accepts NL commands)
+    └── Zustand store (shared UI + assistant state)
+           │  POST command to AI service
+           ▼
+<span class="arch-accent">Python FastAPI: AI Action Planner</span>
+    ├── Parses intent from NL command
+    ├── Maps to one of: open_compose, fill_field,
+    │   navigate_view, apply_filter, open_email, reply
+    └── Returns structured action payload
+           │  action JSON → Zustand dispatch
+           ▼
+<span class="arch-accent">Zustand Action Effects</span>
+    ├── Mutates UI state directly
+    ├── Triggers view navigation
+    └── Fills visible form fields in the DOM
+
+<span class="arch-dim">Gmail API  ←→  Next.js API routes (OAuth, list, read, send)</span>
+<span class="arch-dim">Gmail watch  →  Pub/Sub webhook  →  /api/gmail/webhook</span>
+<span class="arch-dim">Polling fallback every 20s if webhook not available</span></div>
+    </div>
+  </div>
+
+  <!-- KEY DESIGN DECISIONS -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Key Design Decisions</h2>
+
+      <h3>1. UI state lives in Zustand, not component state</h3>
+      <p>The AI action planner returns a structured action object. For this to affect the UI, the entire application's navigation and form state needs to be accessible from a single store. Zustand gives the assistant layer a clean, synchronous interface to mutate UI state: navigate to a view, fill a field, apply a filter.</p>
+
+      <h3>2. Human-in-the-loop confirmation for sends</h3>
+      <p>When the assistant composes and addresses an email, it does not send automatically. A confirmation toggle is shown before the send action fires. This is a deliberate design for the highest-risk action (sending to a real person). Read, navigate, and filter operations execute immediately.</p>
+
+      <div class="callout">
+        <strong>Design principle:</strong> Autonomy should be proportional to reversibility. Navigating to a view is instantly reversible, no confirmation needed. Sending an email to an external party is not reversible, so it gets a confirmation gate. The agent earns trust by respecting the stakes of each action.
+      </div>
+
+      <h3>3. Fallback to TypeScript parser if Python service is down</h3>
+      <p>The Next.js app includes a local TypeScript action parser that handles common commands without the Python service. This means development doesn't block when the Python service isn't running, and a simple deploy without the Python service still provides basic functionality.</p>
+
+      <h3>4. Real-time sync: webhook + polling</h3>
+      <p>Gmail watch registers a Pub/Sub subscription that delivers push notifications on inbox changes. The webhook endpoint at <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent)">/api/gmail/webhook</code> updates the Zustand store when a new email arrives. A 20-second polling fallback runs when the webhook isn't available (local dev, no ngrok, etc.).</p>
+    </div>
+  </div>
+
+  <!-- ACTIONS IMPLEMENTED -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Implemented Assistant Actions</h2>
+
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Natural Language Command</th>
+            <th>Action Executed</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Send an email to john@example.com about Meeting Tomorrow"</td>
+            <td style="color: var(--accent); font-family: var(--font-mono); font-size: 13px;">open_compose → fill_fields</td>
+          </tr>
+          <tr>
+            <td>"Show me emails from the last 10 days"</td>
+            <td style="color: var(--accent); font-family: var(--font-mono); font-size: 13px;">apply_filter (date_range)</td>
+          </tr>
+          <tr>
+            <td>"Find the email from Sarah about the project update"</td>
+            <td style="color: var(--accent); font-family: var(--font-mono); font-size: 13px;">apply_filter (sender + keyword)</td>
+          </tr>
+          <tr>
+            <td>"Open the latest email from David"</td>
+            <td style="color: var(--accent); font-family: var(--font-mono); font-size: 13px;">navigate → open_email</td>
+          </tr>
+          <tr>
+            <td>"Reply to this"</td>
+            <td style="color: var(--accent); font-family: var(--font-mono); font-size: 13px;">context_reply (current email)</td>
+          </tr>
+          <tr>
+            <td>"Show only unread emails from this week"</td>
+            <td style="color: var(--accent); font-family: var(--font-mono); font-size: 13px;">apply_filter (unread + date)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- WHAT I'D DO NEXT -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What I'd Do Next</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Replace heuristic parser with LLM tool-calling.</strong> The current Python action planner uses heuristic intent parsing. Replacing it with a proper tool-calling LLM (with defined tool schemas for each action) would handle ambiguous commands, multi-step requests, and edge cases far better.</li>
+        <li><strong style="color: var(--text-primary);">True push to UI via SSE/WebSocket.</strong> The current webhook updates state on the server but requires the client to poll or manually refresh for inbox changes. Server-Sent Events from the Next.js API route would give instant UI updates on webhook receipt.</li>
+        <li><strong style="color: var(--text-primary);">Thread/conversation view.</strong> Gmail's data model is thread-based. The current implementation shows individual emails. Grouping by thread and handling the full conversation context would make the assistant's "reply to this" action significantly more useful.</li>
+        <li><strong style="color: var(--text-primary);">Confidence-gated actions.</strong> Low-confidence action plans should surface a clarification prompt rather than executing a best-guess action. "Did you want to filter by Sarah as sender, or search for emails mentioning Sarah?" would avoid wrong actions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2025 Roshan Mishra</span>
+        <a href="../index.html#projects" style="color: var(--text-muted); font-size: 13px;">← All Projects</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Activation Steering on Mistral 7B — Roshan Mishra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">Activation Steering</span>
+        <span class="tag accent">Mechanistic Interpretability</span>
+        <span class="tag">PyTorch Hooks</span>
+        <span class="tag">Mistral 7B</span>
+        <span class="tag">4-bit Quantization</span>
+      </div>
+      <h1 class="project-detail-title">Activation Steering<br />on Mistral 7B</h1>
+      <p class="project-detail-subtitle">Controlling LLM output behaviour at inference time by directly manipulating transformer hidden-state activations. No retraining, no prompt tricks, no weight updates.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item">
+          <strong>Model</strong> Mistral 7B v0.1 (4-bit NF4)
+        </div>
+        <div class="project-meta-item">
+          <strong>Stack</strong> Python, PyTorch, HuggingFace Transformers, bitsandbytes
+        </div>
+        <div class="project-meta-item">
+          <a href="https://github.com/RoshanMishra0" target="_blank" rel="noopener" style="color: var(--accent);">GitHub →</a>
+        </div>
+        <div class="project-meta-item">
+          <a href="https://roshanmishra0.github.io/activation-steering/" target="_blank" rel="noopener" style="color: var(--accent);">Live Demo →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT IS ACTIVATION STEERING -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What Is Activation Steering?</h2>
+      <p>Activation steering (also called representation engineering or concept steering) is a mechanistic interpretability technique that controls model behaviour by modifying internal activations at runtime. No prompt changes, no retraining.</p>
+      <p>The key insight: transformer hidden states encode semantic directions. If you can identify the direction in activation space that corresponds to a concept (e.g. "formality"), you can add or subtract that direction during a forward pass to push the model's output toward or away from that concept.</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <h4>What it is NOT</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Not prompt engineering (no instruction change)</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Not fine-tuning (no gradient updates)</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Not RLHF or preference data</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Not system prompt manipulation</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h4>What it IS</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Direct intervention in the forward pass</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Adding a concept vector to a layer's hidden state</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Weights stay frozen — only activations change</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Works at inference time on any input</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Model Setup: 4-bit Quantization</h2>
+      <p>Mistral 7B is loaded in 4-bit NF4 quantization using bitsandbytes. This keeps the model runnable on consumer hardware while preserving enough representational fidelity for the hidden-state geometry to remain meaningful, which is crucial for activation steering to work.</p>
+
+      <div class="code-block"><span class="kw">from</span> transformers <span class="kw">import</span> AutoModelForCausalLM, BitsAndBytesConfig
+<span class="kw">import</span> torch
+
+bnb_config = <span class="cls">BitsAndBytesConfig</span>(
+    load_in_4bit=<span class="kw">True</span>,
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=<span class="kw">True</span>,
+    bnb_4bit_quant_type=<span class="str">"nf4"</span>,   <span class="cmt"># Normal Float 4 — better distribution than uniform 4-bit</span>
+)
+
+model = AutoModelForCausalLM.from_pretrained(
+    <span class="str">"mistralai/Mistral-7B-v0.1"</span>,
+    quantization_config=bnb_config,
+    device_map=<span class="str">"auto"</span>,
+)
+model.eval()  <span class="cmt"># inference only — no gradient tracking needed</span></div>
+    </div>
+  </div>
+
+  <!-- STEERING VECTORS -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Computing Steering Vectors</h2>
+      <p>A steering vector is computed as the difference between mean hidden-state activations for two contrastive sets of prompts: one representing the target concept, one representing the opposite.</p>
+      <p>For the formality experiment: formal prompts ("provide a rigorous, mathematically grounded explanation...") versus casual prompts ("explain like I'm 5"). The mean activation difference at the last token position gives a direction in hidden-state space that encodes the formality concept.</p>
+
+      <div class="arch-diagram"><span class="arch-accent">Formal prompts</span>  →  forward pass  →  last-token hidden state  →  mean_formal
+<span class="arch-accent">Casual prompts</span>   →  forward pass  →  last-token hidden state  →  mean_casual
+
+<span class="arch-accent">steering_vector</span> = (mean_formal - mean_casual) / ||mean_formal - mean_casual||
+
+<span class="arch-dim">shape: (1, 1, hidden_dim)  — broadcast-safe for hook injection</span></div>
+
+      <div class="code-block"><span class="kw">def</span> <span class="fn">get_hidden</span>(prompt: str, layer_id: int) -> torch.Tensor:
+    cache = {}
+
+    <span class="kw">def</span> <span class="fn">hook</span>(module, input, output):
+        h = output[<span class="num">0</span>] <span class="kw">if</span> isinstance(output, tuple) <span class="kw">else</span> output
+        cache[<span class="str">"h"</span>] = h.detach()
+
+    inputs = build_inputs(prompt)
+    handle = model.model.layers[layer_id].register_forward_hook(hook)
+    <span class="kw">with</span> torch.no_grad():
+        model(inputs)  <span class="cmt"># forward pass only, no generation</span>
+    handle.remove()
+    <span class="kw">return</span> cache[<span class="str">"h"</span>]  <span class="cmt"># shape: (1, seq_len, hidden_dim)</span>
+
+<span class="kw">def</span> <span class="fn">compute_steering_vector</span>(layer_id, formal_prompts, casual_prompts):
+    formal_vecs = [last_token(get_hidden(p, layer_id)) <span class="kw">for</span> p <span class="kw">in</span> formal_prompts]
+    casual_vecs = [last_token(get_hidden(p, layer_id)) <span class="kw">for</span> p <span class="kw">in</span> casual_prompts]
+
+    vec = (torch.stack(formal_vecs).mean(<span class="num">0</span>) - torch.stack(casual_vecs).mean(<span class="num">0</span>)).unsqueeze(<span class="num">1</span>)
+    <span class="kw">return</span> vec / (vec.norm(dim=-<span class="num">1</span>, keepdim=<span class="kw">True</span>) + <span class="num">1e-6</span>)  <span class="cmt"># unit-normalised</span></div>
+    </div>
+  </div>
+
+  <!-- INJECTION -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Injecting the Vector via Forward Hook</h2>
+      <p>At inference time, a PyTorch forward hook intercepts the output of a specific transformer layer and adds <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent);">alpha × steering_vector</code> to the hidden state before it flows into the next layer. Alpha controls the steering strength: too low and the effect is imperceptible, too high and it degrades coherence.</p>
+
+      <div class="code-block"><span class="kw">def</span> <span class="fn">make_steering_hook</span>(steering_vector, alpha: float):
+    <span class="kw">def</span> <span class="fn">hook</span>(module, input, output):
+        <span class="kw">if</span> isinstance(output, tuple):
+            steered = output[<span class="num">0</span>] + alpha * steering_vector
+            <span class="kw">return</span> (steered,) + output[<span class="num">1</span>:]  <span class="cmt"># preserve past_key_values etc.</span>
+        <span class="kw">return</span> output + alpha * steering_vector
+    <span class="kw">return</span> hook
+
+<span class="cmt"># Register hook at 75% layer depth, alpha = 4.0</span>
+layer_id = math.floor(len(model.model.layers) * <span class="num">0.75</span>)
+handle = model.model.layers[layer_id].register_forward_hook(
+    make_steering_hook(steering_vector, alpha=<span class="num">4.0</span>)
+)
+output = generate(<span class="str">"Explain gravity in simple terms."</span>)
+handle.remove()  <span class="cmt"># always remove — hook persists across calls otherwise</span></div>
+
+      <div class="callout">
+        <strong>Why remove the hook after generation?</strong> PyTorch forward hooks persist on the module until explicitly removed. If you don't call <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent);">handle.remove()</code>, every subsequent forward pass through that layer (including internal KV cache updates) will apply the steering vector, producing corrupted outputs.
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPERIMENTS -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Experiments: Layer Depth vs Alpha</h2>
+      <p>Two experiments test different injection points and steering strengths on the same test prompt: <em>"Explain gravity in simple terms."</em></p>
+
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Experiment</th>
+            <th>Layer Depth</th>
+            <th>Alpha (α)</th>
+            <th>Effect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Baseline</td>
+            <td>—</td>
+            <td>0</td>
+            <td style="color: var(--text-secondary);">Casual, accessible explanation</td>
+          </tr>
+          <tr>
+            <td>Experiment 1</td>
+            <td class="winner">75% depth</td>
+            <td class="winner">4.0</td>
+            <td style="color: var(--text-secondary);">Strong shift to formal/technical register</td>
+          </tr>
+          <tr>
+            <td>Experiment 2</td>
+            <td>50% depth</td>
+            <td>0.5</td>
+            <td style="color: var(--text-secondary);">Subtle formalisation, coherence preserved</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Deeper layers (75%) carry more semantic content. They're closer to the output distribution and respond more strongly to the steering vector. Earlier layers (50%) carry more syntactic/structural information; the same vector has a subtler effect there. This matches the mechanistic interpretability literature on layer specialisation in transformers.</p>
+
+      <div class="callout">
+        <strong>Key finding:</strong> At α = 4.0 on layer 75%, the model shifts from "things fall because gravity pulls them" to full physics register, discussing gravitational fields, Newton's inverse-square law, and geodesics, without any change to the input prompt or model weights.
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY THIS MATTERS -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Why This Matters for AI Engineering</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">No retraining cost.</strong> Fine-tuning Mistral 7B for tone control would require GPU hours, labelled data, and a PEFT setup. Activation steering achieves comparable tone shifts at inference time with zero weight updates.</li>
+        <li><strong style="color: var(--text-primary);">Composable and reversible.</strong> Hooks can be stacked, mixed, or removed on any call. You can steer one request toward formal tone and the next toward casual, from the same loaded model, by simply registering or removing hooks.</li>
+        <li><strong style="color: var(--text-primary);">Reveals model internals.</strong> The fact that a linear direction in hidden-state space reliably encodes "formality" is not obvious. It's evidence that transformers learn structured semantic geometry, not just statistical token correlations.</li>
+        <li><strong style="color: var(--text-primary);">Practical path to safe deployment.</strong> Activation steering is being actively researched for harmlessness interventions — steering away from harmful concept directions without RLHF. This project is a direct implementation of those ideas on a real 7B model.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WHAT I'D DO NEXT -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What I'd Do Next</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Quantitative evaluation.</strong> Currently the output difference is qualitative. Adding automated eval (e.g. a classifier scoring formality on a held-out set) would make the alpha-vs-layer tradeoffs measurable.</li>
+        <li><strong style="color: var(--text-primary);">Multi-concept steering.</strong> Composing two steering vectors simultaneously (e.g. formal + concise) to test whether the directions are additive or interfere with each other.</li>
+        <li><strong style="color: var(--text-primary);">Negative steering.</strong> Subtracting the formality vector (alpha &lt; 0) to push the model toward casual register from a neutral prompt, testing directional symmetry.</li>
+        <li><strong style="color: var(--text-primary);">Layer sweep.</strong> Running the same steering vector across all 32 layers independently to build a layer-wise sensitivity map, identifying which layers have the cleanest semantic geometry for this concept.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2025 Roshan Mishra</span>
+        <a href="../index.html#projects" style="color: var(--text-muted); font-size: 13px;">← All Projects</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>

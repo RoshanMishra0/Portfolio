@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Emotion Regulation Assistant — Roshan Mishra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">ML Pipeline</span>
+        <span class="tag">FastAPI</span>
+        <span class="tag">React</span>
+        <span class="tag">Phi-3 Mini</span>
+        <span class="tag">WESAD</span>
+        <span class="tag">Wearable AI</span>
+      </div>
+      <h1 class="project-detail-title">AI Emotion Regulation<br />Assistant</h1>
+      <p class="project-detail-subtitle">End-to-end system that predicts stress states from wearable biometric signals and generates personalised LLM-powered calming interventions in real time.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item">
+          <strong>Dataset</strong> WESAD (Wearable Stress and Affect Detection)
+        </div>
+        <div class="project-meta-item">
+          <strong>Stack</strong> Python, FastAPI, React, scikit-learn, Phi-3 Mini
+        </div>
+        <div class="project-meta-item">
+          <a href="https://github.com/RoshanMishra0" target="_blank" rel="noopener" style="color: var(--accent);">GitHub →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROBLEM -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Problem Statement</h2>
+      <p>Stress detection from self-reporting is unreliable. People either don't notice early stress signals or don't report them accurately. Wearable devices continuously collect physiological signals that are better stress predictors than subjective reports, but raw sensor data is meaningless without a classification layer.</p>
+      <p>The additional challenge: stress detection alone isn't useful. A system that detects stress but can't respond to it is just a diagnostic. This project builds the full loop: detection, classification, and a personalised LLM-powered intervention generated for each user's state.</p>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="content-section">
+    <div class="container">
+      <h2>System Architecture</h2>
+
+      <div class="arch-diagram"><span class="arch-accent">Wearable Sensors</span>  →  HR, HRV, EDA, Respiration
+           │
+           ▼
+<span class="arch-accent">Feature Extraction</span>  (preprocess_wesad.py)
+    ├── Statistical features: mean, std, min, max per signal
+    ├── HRV time-domain features: RMSSD, SDNN
+    └── Output: stress_features.csv
+           │
+           ▼
+<span class="arch-accent">Random Forest Classifier</span>  (stress_model.pkl)
+    ├── Trained on WESAD S2–S6 subset
+    ├── Target: Relaxed vs Stressed
+    └── Output: class + confidence score
+           │
+           ▼
+<span class="arch-accent">FastAPI Backend</span>  /predict
+    ├── Receives sensor readings
+    ├── Runs classifier
+    ├── Calls Phi-3 Mini → personalised nudge
+    └── Stores result in SQLite (stress_app.db)
+           │
+           ▼
+<span class="arch-accent">React Frontend</span>
+    ├── Mobile-style input UI
+    ├── Prediction + confidence display
+    ├── Calming nudge display
+    ├── Feedback submission → /feedback
+    └── User dashboard → /dashboard/{user_id}
+
+<span class="arch-dim">Phi-3 Mini served via HuggingFace Inference API (no local GPU needed)</span></div>
+    </div>
+  </div>
+
+  <!-- DATASET -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Dataset: WESAD</h2>
+      <p>WESAD (Wearable Stress and Affect Detection) is a multimodal dataset collected using chest- and wrist-worn sensors. This project uses subjects S2–S6 and focuses on the binary classification task: Relaxed vs Stressed.</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <h4>Input signals used</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 13px; color: var(--text-secondary);">→ HR: Heart Rate (BPM)</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ HRV: Heart Rate Variability</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ EDA: Electrodermal Activity (skin conductance)</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Respiration rate</li>
+          </ul>
+        </div>
+        <div class="info-card">
+          <h4>Feature engineering</h4>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 6px;">
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Sliding window aggregations (mean, std, min, max)</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ HRV time-domain: RMSSD, SDNN</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ EDA tonic + phasic decomposition</li>
+            <li style="font-size: 13px; color: var(--text-secondary);">→ Output: tabular feature matrix → stress_features.csv</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LLM NUDGE LAYER -->
+  <div class="content-section">
+    <div class="container">
+      <h2>LLM Nudge Layer: Phi-3 Mini</h2>
+      <p>The classifier output (class + confidence) is fed into a structured prompt for Phi-3 Mini via the HuggingFace Inference API. The LLM generates a personalised calming intervention (breathing guidance, grounding technique, or cognitive reframe) tailored to the predicted stress level.</p>
+
+      <div class="callout">
+        <strong>Design decision:</strong> Phi-3 Mini was chosen over larger models because the nudge task is narrow and well-defined. A small, fast model on a public inference API keeps latency low and removes the need for local GPU resources, which matters for a real-time wearable application where response time is important.
+      </div>
+
+      <p>The nudge prompt is structured to constrain output length and format. The LLM is instructed to return a 2-3 sentence intervention, not a long explanation. This is a practical application of the same schema-constraint principle from the Fleet Classifier project: smaller, more constrained outputs are more useful in a real UI than long freeform text.</p>
+    </div>
+  </div>
+
+  <!-- FEEDBACK LOOP -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Feedback Loop & Dashboard</h2>
+      <p>After receiving a nudge, the user submits feedback on whether it was helpful. This is stored in SQLite and surfaced in a per-user dashboard showing:</p>
+      <ul>
+        <li>Stress prediction history over time</li>
+        <li>Nudge effectiveness by type</li>
+        <li>Pattern detection (time-of-day, trigger signals)</li>
+      </ul>
+      <p>The API exposes <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent);">GET /dashboard/{user_id}</code> which returns aggregated analytics. The frontend renders this as a user-specific trend view: not just a raw prediction, but a longitudinal view of the user's stress patterns.</p>
+    </div>
+  </div>
+
+  <!-- WHAT I'D DO DIFFERENTLY -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What I'd Do Differently</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Replace Random Forest with a temporal model.</strong> Stress is a temporal signal. The sequence matters, not just the feature snapshot. An LSTM or Transformer on the raw time series would likely outperform the feature-engineering + RF approach.</li>
+        <li><strong style="color: var(--text-primary);">On-device inference.</strong> For a real wearable product, running the classifier on-device rather than in a backend API would eliminate network latency and privacy concerns around transmitting raw biometric data.</li>
+        <li><strong style="color: var(--text-primary);">Personalised model adaptation.</strong> The current model is trained on the WESAD population. Individual physiological baselines vary significantly. Online learning from per-user feedback would let the classifier adapt to each user's specific stress signatures over time.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2025 Roshan Mishra</span>
+        <a href="../index.html#projects" style="color: var(--text-muted); font-size: 13px;">← All Projects</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>

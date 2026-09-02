@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LangGraph Agentic Workflow — Roshan Mishra</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#projects" class="back-link">← Back to Projects</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">Agents</span>
+        <span class="tag accent">LangGraph</span>
+        <span class="tag">Tool Calling</span>
+        <span class="tag">State Management</span>
+        <span class="tag">Python</span>
+      </div>
+      <h1 class="project-detail-title">LangGraph<br />Agentic Workflow</h1>
+      <p class="project-detail-subtitle">A production-style agentic system built with LangGraph: state machine routing, tool calling, conditional branching, and observable execution. Not a tutorial, a working agent architecture.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item">
+          <strong>Type</strong> Agentic AI system
+        </div>
+        <div class="project-meta-item">
+          <strong>Pattern</strong> ReAct + State Graph
+        </div>
+        <div class="project-meta-item">
+          <strong>Stack</strong> Python, LangGraph, LangChain
+        </div>
+        <div class="project-meta-item">
+          <a href="https://github.com/RoshanMishra0" target="_blank" rel="noopener" style="color: var(--accent);">GitHub →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY LANGGRAPH -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Why LangGraph Over Plain LangChain</h2>
+      <p>LangChain chains are linear, one step feeds the next. This works for simple RAG pipelines but breaks down when agent behaviour needs to be conditional: retry a tool call on failure, loop until a condition is met, branch based on intermediate output, or return to an earlier node.</p>
+      <p>LangGraph models agent execution as a directed graph where nodes are processing steps and edges carry state. This makes non-linear agent behaviour explicit and inspectable. You can see exactly which path execution took and why.</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <h4>LangChain Chain</h4>
+          <p>Good for: linear pipelines, simple RAG, sequential transforms. State is implicit. Hard to add retry, branching, or loops without hacks.</p>
+        </div>
+        <div class="info-card">
+          <h4>LangGraph</h4>
+          <p>Good for: agents with tools, conditional routing, multi-step planning, error recovery. State is explicit. Graph structure is inspectable.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ARCHITECTURE -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Agent Architecture</h2>
+      <p>The agent implements a ReAct (Reason + Act) loop within a LangGraph state graph. The key design decision: each node receives the full state object, does one thing, updates state, and returns. Routing logic lives on edges, not inside nodes.</p>
+
+      <div class="arch-diagram">        <span class="arch-accent">START</span>
+           │
+           ▼
+    ┌──────────────┐
+    │  <span class="arch-accent">Planner Node</span>  │  ← Analyzes query, decides if tool needed
+    └──────┬───────┘
+           │
+    ┌──────┴───────────────────────┐
+    │           edge condition      │
+    ▼                               ▼
+<span class="arch-accent">Tool Call Node</span>              <span class="arch-accent">Responder Node</span>
+    │  calls tool(s)                    │  generates final answer
+    │  updates state                    │
+    ▼                               <span class="arch-accent">END</span>
+<span class="arch-accent">Tool Result Node</span>
+    │  parses result
+    │  appends to message history
+    │
+    ▼ (loop back to Planner)
+    ┌──────────────┐
+    │  <span class="arch-accent">Planner Node</span>  │  ← re-evaluates with new tool output
+    └──────────────┘
+           │
+    ┌──────┴───────┐
+    │              │
+<span class="arch-accent">Tool Call</span>    <span class="arch-accent">Responder</span>  ← when no more tools needed
+                   │
+                 <span class="arch-accent">END</span>
+
+<span class="arch-dim">Max iterations guard prevents infinite loops</span></div>
+
+      <div class="callout">
+        <strong>Key design principle:</strong> The Planner node decides whether to call a tool or generate a final response. This decision lives in one place (the conditional edge from Planner), not scattered across multiple nodes. Makes the routing logic easy to test independently.
+      </div>
+    </div>
+  </div>
+
+  <!-- STATE DESIGN -->
+  <div class="content-section">
+    <div class="container">
+      <h2>State Design</h2>
+      <p>State management is the hardest part of building agents. LangGraph state is a TypedDict (or Pydantic model) that gets passed between nodes. Getting the state schema right determines whether the agent is debuggable or opaque.</p>
+
+      <div class="code-block"><span class="kw">from</span> typing <span class="kw">import</span> TypedDict, Annotated, Sequence
+<span class="kw">from</span> langchain_core.messages <span class="kw">import</span> BaseMessage
+<span class="kw">import</span> operator
+
+<span class="kw">class</span> <span class="cls">AgentState</span>(TypedDict):
+    <span class="cmt"># Message history — annotated reducer merges lists on update</span>
+    messages: Annotated[Sequence[<span class="cls">BaseMessage</span>], operator.add]
+
+    <span class="cmt"># Tool outputs stored for reference by later nodes</span>
+    tool_outputs: list[dict]
+
+    <span class="cmt"># Tracks how many tool calls have been made (loop guard)</span>
+    iteration_count: int
+
+    <span class="cmt"># Set by Planner — "call_tool" | "respond" | "error"</span>
+    next_action: str
+
+    <span class="cmt"># Final structured output</span>
+    final_response: dict | <span class="kw">None</span></div>
+
+      <p>The <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent);">next_action</code> field is critical. The conditional edge from Planner reads this field to decide routing. By making the routing decision an explicit state field (not a return value from the node), any node can inspect why a particular path was taken.</p>
+    </div>
+  </div>
+
+  <!-- TOOLS -->
+  <div class="content-section">
+    <div class="container">
+      <h2>Tool Calling Architecture</h2>
+      <p>Tools are registered as LangChain tools with Pydantic input schemas. This gives the LLM a typed function signature it can reason about: it knows what arguments a tool expects, and the framework validates inputs before execution.</p>
+
+      <div class="code-block"><span class="kw">from</span> langchain_core.tools <span class="kw">import</span> tool
+<span class="kw">from</span> pydantic <span class="kw">import</span> BaseModel
+
+<span class="kw">class</span> <span class="cls">VehicleStatusInput</span>(<span class="cls">BaseModel</span>):
+    vehicle_id: str
+    include_history: bool = <span class="kw">False</span>
+
+<span class="fn">@tool</span>(<span class="str">"get_vehicle_status"</span>, args_schema=<span class="cls">VehicleStatusInput</span>)
+<span class="kw">def</span> <span class="fn">get_vehicle_status</span>(vehicle_id: str, include_history: bool) -> dict:
+    <span class="str">"""Get current status and location for a specific vehicle ID."""</span>
+    <span class="cmt"># Tool implementation — database call, API call, etc.</span>
+    <span class="kw">return</span> fleet_db.query_vehicle(vehicle_id, history=include_history)</div>
+
+      <ul>
+        <li><strong style="color: var(--text-primary);">Typed inputs prevent silent failures.</strong> The LLM sometimes passes arguments in the wrong format. Pydantic validation catches this before the tool executes and returns a structured error the agent can reason about.</li>
+        <li><strong style="color: var(--text-primary);">Tool output is stored in state, not just returned.</strong> Storing all tool outputs in <code style="font-family: var(--font-mono); font-size: 13px; color: var(--accent);">AgentState.tool_outputs</code> means any subsequent node can reference previous results without re-calling the tool.</li>
+        <li><strong style="color: var(--text-primary);">Tool errors are handled in the graph, not inside tools.</strong> Tools raise exceptions; the Tool Result Node catches them and writes a structured error to state. The Planner then decides whether to retry, use an alternative tool, or respond with a partial answer.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- WHAT MAKES IT PRODUCTION STYLE -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What Makes This Production-Style</h2>
+      <p>Most LangGraph tutorials show the happy path. These are the things that make the difference in real systems:</p>
+
+      <div class="two-col">
+        <div class="info-card">
+          <h4>Iteration guard</h4>
+          <p>The agent cannot loop indefinitely. <code style="font-family: var(--font-mono); font-size: 12px; color: var(--accent);">iteration_count</code> is checked on every Planner entry. At max iterations, the graph forces a transition to Responder with whatever partial state exists. No infinite loops possible.</p>
+        </div>
+        <div class="info-card">
+          <h4>Structured final output</h4>
+          <p>The Responder node doesn't return a raw string. It writes a typed <code style="font-family: var(--font-mono); font-size: 12px; color: var(--accent);">final_response</code> dict to state with defined fields. The API layer reads this, not the raw message history.</p>
+        </div>
+        <div class="info-card">
+          <h4>Observable execution</h4>
+          <p>Every state transition is logged. The <code style="font-family: var(--font-mono); font-size: 12px; color: var(--accent);">next_action</code> field creates a readable execution trace. You can replay exactly which path the agent took and why for any given input.</p>
+        </div>
+        <div class="info-card">
+          <h4>Error recovery path</h4>
+          <p>Tool failures write to state as structured errors, not exceptions that bubble up and crash the graph. The Planner can route to an error recovery node or respond gracefully with partial results.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT I'D DO DIFFERENTLY -->
+  <div class="content-section">
+    <div class="container">
+      <h2>What I'd Do Differently</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Add LangSmith tracing from day one.</strong> Debugging agent execution from print statements is painful. LangSmith's trace view makes the graph execution immediately visible. It should be set up before writing the first node, not after.</li>
+        <li><strong style="color: var(--text-primary);">Separate tool definitions from tool implementations.</strong> Currently the tool schema and business logic live in the same function. Separating them would allow the tool schema to be tested independently from the API calls it wraps.</li>
+        <li><strong style="color: var(--text-primary);">Implement a checkpointing strategy.</strong> LangGraph supports state persistence via checkpointers. For long-running agents, this allows recovery from mid-execution failures rather than restarting from the beginning.</li>
+        <li><strong style="color: var(--text-primary);">Test with adversarial inputs.</strong> The agent was tested with well-formed queries. Production agents receive malformed, ambiguous, and contradictory inputs. A systematic adversarial test set would reveal where the Planner's routing logic breaks down.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2025 Roshan Mishra</span>
+        <a href="../index.html#projects" style="color: var(--text-muted); font-size: 13px;">← All Projects</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>
