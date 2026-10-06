@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SAP Role Assistant: Enterprise RAG | Roshan Mishra</title>
+  <meta name="description" content="Case study: an enterprise RAG assistant where hybrid retrieval raised keyword-query precision and recall from under 0.70 to over 0.85." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#case-studies">Case Studies</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank" rel="noopener">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#case-studies" class="back-link">← Back to Case Studies</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">RAG</span>
+        <span class="tag accent">Hybrid Search</span>
+        <span class="tag">Elasticsearch</span>
+        <span class="tag">Azure OpenAI</span>
+        <span class="tag">Anthropic Claude</span>
+        <span class="tag">AWS ECS</span>
+      </div>
+      <h1 class="project-detail-title">SAP Role Assistant:<br />Enterprise RAG</h1>
+      <p class="project-detail-subtitle">A question-answering assistant over large Word, Excel and PDF repositories. Hybrid retrieval raised precision and recall on keyword queries from under 0.70 to over 0.85.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item"><strong>Role</strong> AI Engineer, Accenture</div>
+        <div class="project-meta-item"><strong>Type</strong> Production system for an enterprise client</div>
+        <div class="project-meta-item"><strong>Stack</strong> Python, Elasticsearch, Azure OpenAI, Claude, Docker, AWS ECS</div>
+      </div>
+      <div class="confidential-note">Client name, documents, prompts and code are confidential and not shown</div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>The Problem</h2>
+      <p>Business users had to search large Word and Excel documents by hand to find the information they needed. The goal was an assistant they could ask in plain language and trust: answers grounded in the documents, and only in the documents each user was allowed to see.</p>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Architecture</h2>
+      <div class="arch-diagram"><span class="arch-accent">Ingestion</span>
+Word / Excel / PDF
+    │
+    ▼
+<span class="arch-accent">Structure-aware chunking</span>   paragraphs, table rows, header-carrying spreadsheet chunks
+    │
+    ▼
+<span class="arch-accent">Embeddings</span>   Azure OpenAI text-embedding-3-small
+    │
+    ▼
+<span class="arch-accent">Elasticsearch</span>   vectors + text + access metadata
+
+<span class="arch-accent">Query</span>
+User question
+    │
+    ▼
+<span class="arch-accent">Hybrid retrieval</span>   cosine similarity + BM25, scores normalised then combined
+    │
+    ▼
+<span class="arch-accent">Access filter</span>   only chunks this user may see
+    │
+    ▼
+<span class="arch-accent">Relevance check</span>   thresholds, LLM judge for borderline results
+    │
+    ▼
+<span class="arch-accent">Claude</span>   answer from the retrieved context only</div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Decision 1: Chunk by Document Structure</h2>
+      <p>Fixed-size chunks cut tables in half and separate spreadsheet rows from the headers that give them meaning. I chunked each document type by its own structure.</p>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Word.</strong> Paragraph-based chunks of roughly 500 characters. Tables are handled separately, with each row kept as its own unit.</li>
+        <li><strong style="color: var(--text-primary);">Excel.</strong> Chunks of about ten rows, with the headers and sub-headers repeated in every chunk so a retrieved row still says what its columns mean.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Decision 2: Hybrid Retrieval</h2>
+      <p>The first version used semantic search alone. It handled conceptual questions well and failed on exact business terms: SAP transaction codes, process abbreviations such as R2R and OTC, and customer identifiers. An embedding places those near similar-looking terms, which is the wrong behaviour when the user wants that exact one.</p>
+      <p>I found this by reading retrieval logs for the failing questions, not by adjusting the prompt. The fix was to combine semantic similarity with BM25 keyword search.</p>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Normalise before combining.</strong> Cosine similarity and BM25 scores are on different scales, so each is normalised before the two are added.</li>
+        <li><strong style="color: var(--text-primary);">Weight by query type.</strong> The balance between the two shifts with the kind of question being asked.</li>
+      </ul>
+
+      <table class="metrics-table">
+        <thead>
+          <tr><th>Keyword queries, evaluation set</th><th>Semantic only</th><th>Hybrid</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Precision and recall</td><td class="loser">below 0.70</td><td class="winner">above 0.85</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Decision 3: Access Control at Retrieval</h2>
+      <p>The model is never asked to decide who may see what. Each chunk carries department and access metadata, and the retrieval query filters on the signed-in user's permissions. A chunk the user cannot see never reaches the model, so it cannot leak into an answer.</p>
+      <div class="callout">
+        <strong>Principle:</strong> permissions are enforced by the search filter, which is deterministic, and not by a prompt instruction, which is not.
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Decision 4: Keep Answers Grounded</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Relevance thresholds.</strong> Results below a score threshold are dropped before generation.</li>
+        <li><strong style="color: var(--text-primary);">LLM judge for borderline results.</strong> Results near the threshold get a second check on whether they answer the question.</li>
+        <li><strong style="color: var(--text-primary);">Explicit uncertainty.</strong> The model is told to say when the retrieved context does not contain the answer.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Ingestion at Scale</h2>
+      <div class="two-col">
+        <div class="info-card">
+          <h4>95% less ingestion time</h4>
+          <p>Embedding calls were batched and run in parallel, which cut the time to ingest the repository by 95%.</p>
+        </div>
+        <div class="info-card">
+          <h4>Hash-based change detection</h4>
+          <p>Files are identified by a hash of their content, not by name or timestamp. A renamed copy is skipped; a changed file is re-embedded.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>What I Took From It</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Read the retrieved chunks first.</strong> Most wrong answers were retrieval failures, and the logs showed it before any prompt change could.</li>
+        <li><strong style="color: var(--text-primary);">Exact terms need keyword search.</strong> Enterprise vocabulary is full of codes that embeddings blur together.</li>
+        <li><strong style="color: var(--text-primary);">Measure retrieval on its own.</strong> Precision and recall against a fixed evaluation set made the hybrid change a number, not an impression.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2026 Roshan Mishra</span>
+        <a href="../index.html#case-studies" style="color: var(--text-muted); font-size: 13px;">← All Case Studies</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>

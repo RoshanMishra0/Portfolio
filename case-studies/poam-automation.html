@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>POAM Generator: Agentic Compliance Automation | Roshan Mishra</title>
+  <meta name="description" content="Case study: an agentic AWS workflow that cut about 29 minutes of analyst work per CVE to about 7 seconds." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../style.css" />
+</head>
+<body>
+
+  <nav id="nav">
+    <div class="container">
+      <div class="nav-inner">
+        <a href="../index.html" class="nav-logo">rm<span>.</span></a>
+        <ul class="nav-links">
+          <li><a href="../index.html#case-studies">Case Studies</a></li>
+          <li><a href="../index.html#projects">Projects</a></li>
+          <li><a href="../index.html#experience">Experience</a></li>
+          <li><a href="../index.html#skills">Skills</a></li>
+          <li><a href="../index.html#contact">Contact</a></li>
+        </ul>
+        <a href="../resume.pdf" class="nav-cta" target="_blank" rel="noopener">Resume ↓</a>
+        <button class="nav-mobile-toggle" id="nav-toggle" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="project-detail-header">
+    <div class="container">
+      <a href="../index.html#case-studies" class="back-link">← Back to Case Studies</a>
+      <div class="project-tags" style="margin-bottom: 20px;">
+        <span class="tag accent">Agents</span>
+        <span class="tag accent">Structured Output</span>
+        <span class="tag">AWS Lambda</span>
+        <span class="tag">Bedrock</span>
+        <span class="tag">S3</span>
+        <span class="tag">EC2</span>
+      </div>
+      <h1 class="project-detail-title">POAM Generator:<br />Agentic Compliance Automation</h1>
+      <p class="project-detail-subtitle">An agentic AWS workflow that writes compliance justifications for security vulnerabilities. About 29 minutes of analyst work per CVE became about 7 seconds.</p>
+      <div class="project-meta-row">
+        <div class="project-meta-item"><strong>Role</strong> AI Engineer, Accenture</div>
+        <div class="project-meta-item"><strong>Type</strong> Production system for an enterprise client</div>
+        <div class="project-meta-item"><strong>Stack</strong> Python, AWS Lambda, Bedrock, S3, EC2</div>
+      </div>
+      <div class="confidential-note">Client name, prompts, data and code are confidential and not shown</div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>The Problem</h2>
+      <p>When a security vulnerability (a CVE) affects a system, compliance teams record how it will be handled in a Plan of Action and Milestones, or POAM. Business analysts were writing each justification by hand, at about 29 minutes per CVE, and the queue kept growing.</p>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>How the Workflow Decides</h2>
+      <p>This is not one prompt that turns a CVE into text. The workflow first works out what each CVE needs, based on four things:</p>
+      <ul>
+        <li>whether the CVE is valid,</li>
+        <li>whether a POAM already exists for it,</li>
+        <li>whether a report is required,</li>
+        <li>what is already stored for it in S3.</li>
+      </ul>
+      <p>Only then does it call the model, with a structured prompt for that case, and write the result back.</p>
+
+      <div class="arch-diagram"><span class="arch-accent">Single CVE</span>
+CVE input
+    │
+    ▼
+<span class="arch-accent">Workflow decision</span>   valid? existing POAM? report needed?
+    │
+    ▼
+<span class="arch-accent">S3 lookup</span>   what is already known
+    │
+    ▼
+<span class="arch-accent">LLM on Bedrock</span>   structured prompt for this case
+    │
+    ▼
+<span class="arch-accent">Schema validation</span>   JSON checked, truncated output recovered
+    │
+    ▼
+<span class="arch-accent">S3</span>   POAM output stored
+
+<span class="arch-accent">Batch</span>
+S3 manifest of CVEs
+    │
+    ▼
+<span class="arch-accent">Parallel workers</span>   bounded concurrency, EC2 offloading
+    │
+    ▼
+<span class="arch-accent">Checkpoints in S3</span>   a failed run resumes where it stopped</div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Results</h2>
+      <table class="metrics-table">
+        <thead>
+          <tr><th>Measure</th><th>Before</th><th>After</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>One CVE</td><td class="loser">about 29 min of analyst time</td><td class="winner">about 7 s</td></tr>
+          <tr><td>Batch of about 100 CVEs</td><td class="loser">14 min</td><td class="winner">2.5 min</td></tr>
+        </tbody>
+      </table>
+      <p class="note-small">The first row compares manual analyst time with generation time. The second compares the first batch implementation with the parallel one.</p>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Making Batches Fast Without Breaking Rate Limits</h2>
+      <p>Running CVEs one after another took 14 minutes for about a hundred. Running them all at once hit the model provider's rate limits. The working design sits between the two.</p>
+      <ul>
+        <li><strong style="color: var(--text-primary);">Bounded concurrency.</strong> A fixed number of workers call the model in parallel.</li>
+        <li><strong style="color: var(--text-primary);">Backoff and retry.</strong> A rate-limit response (HTTP 429) is retried with exponential backoff.</li>
+        <li><strong style="color: var(--text-primary);">Scale down under pressure.</strong> When 429s increase, concurrency drops instead of piling on more retries.</li>
+        <li><strong style="color: var(--text-primary);">Caching.</strong> Work that has already been done is not requested again.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>Making It Reliable</h2>
+      <div class="two-col">
+        <div class="info-card">
+          <h4>Checkpointing in S3</h4>
+          <p>Progress is written to S3 as the batch runs. If a run fails part-way, it resumes from the last checkpoint instead of starting again from zero.</p>
+        </div>
+        <div class="info-card">
+          <h4>Schema-validated output</h4>
+          <p>Every response must parse and match the expected JSON schema before it is stored, which keeps the output auditable.</p>
+        </div>
+      </div>
+
+      <h3>Recovering truncated JSON</h3>
+      <p>Long outputs sometimes hit the model's token limit and came back as incomplete JSON. Retrying the whole workflow was slow and often failed the same way. The fix was targeted:</p>
+      <ul>
+        <li>detect that the JSON is incomplete,</li>
+        <li>make a second call with a larger token allowance and a prompt written for continuation,</li>
+        <li>validate the final structured output before accepting it.</li>
+      </ul>
+      <div class="callout">
+        <strong>Principle:</strong> treat each LLM failure mode as its own case with its own recovery, not as a reason to rerun everything.
+      </div>
+    </div>
+  </div>
+
+  <div class="content-section">
+    <div class="container">
+      <h2>What I Took From It</h2>
+      <ul>
+        <li><strong style="color: var(--text-primary);">The model is one step in a workflow.</strong> Most of the engineering was deciding what to ask, validating what came back, and handling what went wrong.</li>
+        <li><strong style="color: var(--text-primary);">Rate limits set the design.</strong> Throughput came from controlled concurrency, not from maximum parallelism.</li>
+        <li><strong style="color: var(--text-primary);">Long jobs must be resumable.</strong> Checkpoints turned a failed batch from a restart into a continuation.</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container">
+      <div class="footer-inner">
+        <span class="footer-copy">© 2026 Roshan Mishra</span>
+        <a href="../index.html#case-studies" style="color: var(--text-muted); font-size: 13px;">← All Case Studies</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="../app.js"></script>
+</body>
+</html>

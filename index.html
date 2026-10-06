@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Roshan Mishra — AI Engineer</title>
-  <meta name="description" content="AI/ML Engineer specializing in LLMs, agentic systems, and structured output pipelines. Proof-of-work portfolio." />
+  <title>Roshan Mishra | AI Engineer: RAG, Agents, Evaluation</title>
+  <meta name="description" content="AI Engineer with three years of production work on RAG and agentic systems. Case studies with measured results: retrieval precision and recall from under 0.70 to over 0.85, and a 29-minute compliance task cut to about 7 seconds." />
+  <meta property="og:title" content="Roshan Mishra | AI Engineer" />
+  <meta property="og:description" content="Production RAG and agent systems, with the numbers to show they work." />
+  <meta property="og:type" content="website" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -18,10 +21,10 @@
       <div class="nav-inner">
         <a href="#hero" class="nav-logo">rm<span>.</span></a>
         <ul class="nav-links" id="nav-links">
+          <li><a href="#case-studies">Case Studies</a></li>
           <li><a href="#projects">Projects</a></li>
           <li><a href="#experience">Experience</a></li>
           <li><a href="#skills">Skills</a></li>
-          <li><a href="#blog">Blog</a></li>
           <li><a href="#contact">Contact</a></li>
         </ul>
         <a href="resume.pdf" class="nav-cta" target="_blank" rel="noopener">Resume ↓</a>
@@ -33,31 +36,98 @@
   <!-- HERO -->
   <section id="hero">
     <div class="container">
-      <div class="hero-badge">Available for AI Engineer roles</div>
+      <div class="hero-badge plain">RAG · Agents · Evaluation</div>
       <h1 class="hero-title">
         Roshan Mishra<br />
         <span class="accent">AI Engineer</span>
       </h1>
       <p class="hero-subtitle">
-        AI Engineer building practical LLM, RAG, and agent systems focused on accuracy, latency, and production readiness
+        I build and evaluate production RAG and agent systems: retrieval that finds the right document, workflows that finish the job, and measurements that show both.
       </p>
       <div class="hero-actions">
-        <a href="#projects" class="btn-primary">View Projects →</a>
+        <a href="#case-studies" class="btn-primary">Read the case studies →</a>
         <a href="#contact" class="btn-secondary">Get in touch</a>
       </div>
       <div class="hero-stats">
-        <div class="hero-stat">
-          <div class="hero-stat-number">80%</div>
-          <div class="hero-stat-label">Latency Reduced (prod)</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">95%</div>
-          <div class="hero-stat-label">Faster Ingestion (prod)</div>
-        </div>
-        <div class="hero-stat">
-          <div class="hero-stat-number">2+</div>
-          <div class="hero-stat-label">Yrs Production AI Eng</div>
-        </div>
+        <a class="hero-stat" href="case-studies/sap-assistant.html">
+          <div class="hero-stat-number">0.70 → 0.85</div>
+          <div class="hero-stat-label">Retrieval precision and recall, production RAG</div>
+        </a>
+        <a class="hero-stat" href="case-studies/poam-automation.html">
+          <div class="hero-stat-number">29 min → 7 s</div>
+          <div class="hero-stat-label">Compliance write-up per vulnerability, production agent</div>
+        </a>
+        <a class="hero-stat" href="projects/fleet-classifier.html">
+          <div class="hero-stat-number">73% → 89%</div>
+          <div class="hero-stat-label">Exact match on a held-out set, open source</div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CASE STUDIES -->
+  <section id="case-studies" class="section">
+    <div class="container">
+      <p class="section-label">Production work</p>
+      <h2 class="section-title">Case Studies</h2>
+      <p class="section-subtitle">Two systems I built for enterprise clients at Accenture. Client details are confidential, so each one covers the problem, the decisions I made, and the measured result.</p>
+
+      <div class="projects-grid">
+
+        <a href="case-studies/sap-assistant.html" class="project-card">
+          <div class="project-number">Enterprise RAG</div>
+          <div class="project-name">SAP Role Assistant</div>
+          <p class="project-desc">A question-answering assistant over large Word, Excel and PDF repositories. Semantic search kept missing exact business terms, so I added hybrid retrieval, structure-aware chunking and access control at the retrieval step.</p>
+          <div class="project-metrics">
+            <div class="metric-row">
+              <span class="metric-label">Precision and recall, keyword queries</span>
+              <span class="metric-value">&lt;0.70 → &gt;0.85</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Ingestion time</span>
+              <span class="metric-value">−95%</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Deployment</span>
+              <span class="metric-value">Docker on AWS ECS</span>
+            </div>
+          </div>
+          <div class="project-tags">
+            <span class="tag accent">RAG</span>
+            <span class="tag accent">Hybrid Search</span>
+            <span class="tag">Elasticsearch</span>
+            <span class="tag">Azure OpenAI</span>
+            <span class="tag">Anthropic Claude</span>
+          </div>
+        </a>
+
+        <a href="case-studies/poam-automation.html" class="project-card">
+          <div class="project-number">Agentic workflow</div>
+          <div class="project-name">POAM Generator</div>
+          <p class="project-desc">An agentic AWS workflow that writes compliance justifications for security vulnerabilities. It decides what each CVE needs, generates schema-validated output, and runs large batches in parallel without losing progress.</p>
+          <div class="project-metrics">
+            <div class="metric-row">
+              <span class="metric-label">Analyst time per CVE</span>
+              <span class="metric-value">~29 min → ~7 s</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Batch of about 100 CVEs</span>
+              <span class="metric-value">14 min → 2.5 min</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Platform</span>
+              <span class="metric-value">AWS Lambda + Bedrock</span>
+            </div>
+          </div>
+          <div class="project-tags">
+            <span class="tag accent">Agents</span>
+            <span class="tag accent">Structured Output</span>
+            <span class="tag">AWS Lambda</span>
+            <span class="tag">Bedrock</span>
+            <span class="tag">S3</span>
+          </div>
+        </a>
+
       </div>
     </div>
   </section>
@@ -65,9 +135,9 @@
   <!-- PROJECTS -->
   <section id="projects" class="section">
     <div class="container">
-      <p class="section-label">Work</p>
+      <p class="section-label">Open source</p>
       <h2 class="section-title">Public Projects</h2>
-      <p class="section-subtitle">Each project is built end-to-end with real evaluation metrics. Not tutorials, not toy demos.</p>
+      <p class="section-subtitle">Code you can run. Each page says what was measured and what is still unfinished.</p>
 
       <div class="projects-grid">
 
@@ -75,35 +145,62 @@
         <a href="projects/fleet-classifier.html" class="project-card">
           <div class="project-number">01</div>
           <div class="project-name">Fleet Management Intent Classifier</div>
-          <p class="project-desc">Local LLM-based intent classification and slot extraction. No cloud API, fully self-hosted via Ollama. Returns schema-valid JSON for downstream systems.</p>
+          <p class="project-desc">Intent classification and slot extraction on a local 3B model, with a deterministic rule layer around it. Self-hosted through Ollama, so no query leaves the machine. Ships with tests, CI, Docker and a demo page.</p>
           <div class="project-metrics">
             <div class="metric-row">
-              <span class="metric-label">Intent Accuracy (Qwen 2.5 3B)</span>
-              <span class="metric-value">91.11%</span>
+              <span class="metric-label">Exact match, held-out set</span>
+              <span class="metric-value">73.3% → 88.9%</span>
             </div>
             <div class="metric-row">
-              <span class="metric-label">Valid JSON Rate</span>
+              <span class="metric-label">Intent accuracy, held-out set</span>
+              <span class="metric-value">93.3%</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Valid JSON rate</span>
               <span class="metric-value">100%</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Exact Match (Qwen 2.5 3B)</span>
-              <span class="metric-value">77.78%</span>
             </div>
           </div>
           <div class="project-tags">
             <span class="tag accent">LLM Evaluation</span>
+            <span class="tag accent">Structured Output</span>
             <span class="tag">FastAPI</span>
             <span class="tag">Ollama</span>
-            <span class="tag">Pydantic</span>
-            <span class="tag">Structured Output</span>
+            <span class="tag">Docker</span>
           </div>
         </a>
 
         <!-- Project 2 -->
-        <a href="projects/model-steering.html" class="project-card">
+        <a href="projects/ui-agent.html" class="project-card">
           <div class="project-number">02</div>
+          <div class="project-name">UI Agent: Gmail Copilot</div>
+          <p class="project-desc">An assistant that drives a Gmail client's interface from plain-language commands: composing, replying, filtering and navigating. A human-confirmation toggle guards assistant-driven compose. The action planner is rule-based today; LLM tool calling is the next step.</p>
+          <div class="project-metrics">
+            <div class="metric-row">
+              <span class="metric-label">Interface</span>
+              <span class="metric-value">Next.js 15 + Gmail API</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Action layer</span>
+              <span class="metric-value">Python FastAPI</span>
+            </div>
+            <div class="metric-row">
+              <span class="metric-label">Sync</span>
+              <span class="metric-value">Webhook + Polling</span>
+            </div>
+          </div>
+          <div class="project-tags">
+            <span class="tag accent">Agentic UI</span>
+            <span class="tag">Next.js</span>
+            <span class="tag">TypeScript</span>
+            <span class="tag">Gmail API</span>
+          </div>
+        </a>
+
+        <!-- Project 3 -->
+        <a href="projects/model-steering.html" class="project-card">
+          <div class="project-number">03</div>
           <div class="project-name">Activation Steering on Mistral 7B</div>
-          <p class="project-desc">Inference-time behaviour control without retraining. Computes contrastive steering vectors from hidden-state activations and injects them at specific transformer layers via PyTorch forward hooks, shifting tone from casual to formal without touching weights.</p>
+          <p class="project-desc">Inference-time behaviour control without retraining. Computes contrastive steering vectors from hidden-state activations and injects them at chosen transformer layers through PyTorch forward hooks, shifting tone from casual to formal without touching weights.</p>
           <div class="project-metrics">
             <div class="metric-row">
               <span class="metric-label">Technique</span>
@@ -120,18 +217,17 @@
           </div>
           <div class="project-tags">
             <span class="tag accent">Activation Steering</span>
-            <span class="tag accent">Mechanistic Interpretability</span>
             <span class="tag">PyTorch Hooks</span>
             <span class="tag">Mistral 7B</span>
             <span class="tag">Quantization</span>
           </div>
         </a>
 
-        <!-- Project 3 -->
+        <!-- Project 4 -->
         <a href="projects/langgraph-agent.html" class="project-card">
-          <div class="project-number">03</div>
-          <div class="project-name">LangGraph Agentic Workflow</div>
-          <p class="project-desc">Production-style agentic system built with LangGraph. Implements state machine routing, tool calling, conditional branching, and structured execution. Not a tutorial, a working agent architecture.</p>
+          <div class="project-number">04</div>
+          <div class="project-name">LangGraph Agent Patterns</div>
+          <p class="project-desc">A step-by-step build of agent patterns in LangGraph: tool calling, a hand-written agent loop, a state graph, intent routing and multi-intent requests. A learning project that shows how the pieces fit.</p>
           <div class="project-metrics">
             <div class="metric-row">
               <span class="metric-label">Architecture</span>
@@ -142,8 +238,8 @@
               <span class="metric-value">ReAct + Tools</span>
             </div>
             <div class="metric-row">
-              <span class="metric-label">Execution</span>
-              <span class="metric-value">Deterministic</span>
+              <span class="metric-label">Model backend</span>
+              <span class="metric-value">Groq</span>
             </div>
           </div>
           <div class="project-tags">
@@ -154,11 +250,11 @@
           </div>
         </a>
 
-        <!-- Project 4 -->
+        <!-- Project 5 -->
         <a href="projects/emotion-regulation.html" class="project-card">
-          <div class="project-number">04</div>
+          <div class="project-number">05</div>
           <div class="project-name">AI Emotion Regulation Assistant</div>
-          <p class="project-desc">End-to-end stress detection system using wearable biometric data (HR, HRV, EDA, respiration) from the WESAD dataset. Random Forest classifier feeds a Phi-3 mini LLM that generates personalised calming nudges in real time.</p>
+          <p class="project-desc">Stress detection from wearable biometric data (HR, HRV, EDA, respiration) in the WESAD dataset. A Random Forest classifier feeds a Phi-3 Mini LLM that writes short calming nudges.</p>
           <div class="project-metrics">
             <div class="metric-row">
               <span class="metric-label">Dataset</span>
@@ -169,7 +265,7 @@
               <span class="metric-value">Random Forest</span>
             </div>
             <div class="metric-row">
-              <span class="metric-label">LLM Nudges</span>
+              <span class="metric-label">LLM nudges</span>
               <span class="metric-value">Phi-3 Mini</span>
             </div>
           </div>
@@ -178,35 +274,6 @@
             <span class="tag">FastAPI</span>
             <span class="tag">React</span>
             <span class="tag">Phi-3</span>
-            <span class="tag">Wearable AI</span>
-          </div>
-        </a>
-
-        <!-- Project 5 -->
-        <a href="projects/ui-agent.html" class="project-card">
-          <div class="project-number">05</div>
-          <div class="project-name">UI Agent: Gmail AI Copilot</div>
-          <p class="project-desc">An AI assistant that controls a Gmail client's UI programmatically. Not just answering questions but executing real actions: composing, filtering, navigating, and opening emails from natural language commands. Human-in-the-loop confirmation for sends.</p>
-          <div class="project-metrics">
-            <div class="metric-row">
-              <span class="metric-label">Interface</span>
-              <span class="metric-value">Next.js 15 + Gmail API</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">AI Layer</span>
-              <span class="metric-value">Python FastAPI</span>
-            </div>
-            <div class="metric-row">
-              <span class="metric-label">Sync</span>
-              <span class="metric-value">Webhook + Polling</span>
-            </div>
-          </div>
-          <div class="project-tags">
-            <span class="tag accent">Agentic UI</span>
-            <span class="tag accent">Tool Use</span>
-            <span class="tag">Next.js</span>
-            <span class="tag">TypeScript</span>
-            <span class="tag">Gmail API</span>
           </div>
         </a>
 
@@ -219,22 +286,32 @@
     <div class="container">
       <p class="section-label">Experience</p>
       <h2 class="section-title">Where I've Worked</h2>
-      <p class="section-subtitle">2+ years building production AI at enterprise scale.</p>
+      <p class="section-subtitle">Three years building production AI for enterprise clients.</p>
 
       <div class="timeline">
 
         <div class="timeline-item">
           <div class="timeline-dot"></div>
           <div class="timeline-content">
-            <div class="timeline-period">Oct 2023 to Present</div>
+            <div class="timeline-period">Sep 2026 to Present</div>
+            <div class="timeline-role">Data Scientist</div>
+            <div class="timeline-company">DataEconomy</div>
+          </div>
+        </div>
+
+        <div class="timeline-item">
+          <div class="timeline-dot muted"></div>
+          <div class="timeline-content">
+            <div class="timeline-period">Oct 2023 to Sep 2026</div>
             <div class="timeline-role">AI Engineer</div>
             <div class="timeline-company">Accenture</div>
             <div class="timeline-body">
               <ul>
-                <li><strong style="color:var(--text-primary)">POAM Generator: Agentic LLM Workflow.</strong> Production AWS Lambda + Bedrock system that generates compliance POAM reports from CVE inputs. Agentic pipeline with schema-validated JSON outputs, async batch processing via S3 + distributed EC2 offloading, and retry logic. Reduced end-to-end latency by 80% (14 min to 2.5 min) via parallelisation and caching.</li>
-                <li><strong style="color:var(--text-primary)">SAP Role Assistant: Enterprise RAG.</strong> Retrieval-augmented generation pipeline using Anthropic LLM + Azure Embeddings + Elasticsearch. Ingestion pipeline for PDF/DOCX/Excel with semantic chunking, vectorisation, and metadata tagging. Hybrid semantic + keyword search with hash-based deduplication. Reduced ingestion time by 95% via batching and parallel API calls.</li>
+                <li><strong style="color:var(--text-primary)">SAP Role Assistant: enterprise RAG.</strong> Built a question-answering assistant over large Word, Excel and PDF repositories with Anthropic Claude, Azure OpenAI embeddings and Elasticsearch. Added hybrid semantic and BM25 search that raised keyword-query precision and recall from under 0.70 to over 0.85, enforced access control at retrieval, and cut ingestion time by 95%. <a href="case-studies/sap-assistant.html">Read the case study →</a></li>
+                <li><strong style="color:var(--text-primary)">POAM Generator: agentic compliance workflow.</strong> Built a production workflow on AWS Lambda and Bedrock that writes compliance justifications from CVE inputs, cutting about 29 minutes of analyst work per CVE to about 7 seconds. Reduced a batch of about 100 CVEs from 14 minutes to 2.5 with parallel workers, bounded concurrency and caching. <a href="case-studies/poam-automation.html">Read the case study →</a></li>
               </ul>
             </div>
+            <div class="confidential-note">Client names and internal details are confidential</div>
           </div>
         </div>
 
@@ -247,7 +324,7 @@
     <div class="container">
       <p class="section-label">Technical Skills</p>
       <h2 class="section-title">What I Work With</h2>
-      <p class="section-subtitle">Focused on the LLM stack, from raw API calls to production agentic systems.</p>
+      <p class="section-subtitle">The LLM stack, from retrieval and prompts to deployed, tested services.</p>
 
       <div class="skills-grid">
 
@@ -259,7 +336,7 @@
             <span class="skill-tag strong">Model Evaluation</span>
             <span class="skill-tag">AWS Bedrock</span>
             <span class="skill-tag">Azure OpenAI</span>
-            <span class="skill-tag">Anthropic API</span>
+            <span class="skill-tag">Anthropic Claude</span>
             <span class="skill-tag">Ollama</span>
             <span class="skill-tag">Mistral</span>
             <span class="skill-tag">Qwen</span>
@@ -287,7 +364,8 @@
             <span class="skill-tag strong">Elasticsearch</span>
             <span class="skill-tag">FAISS</span>
             <span class="skill-tag">Embedding Models</span>
-            <span class="skill-tag">Chunking Strategies</span>
+            <span class="skill-tag">Structure-Aware Chunking</span>
+            <span class="skill-tag">Retrieval Evaluation</span>
           </div>
         </div>
 
@@ -306,11 +384,12 @@
           <div class="skill-group-title">Cloud & Infrastructure</div>
           <div class="skill-tags">
             <span class="skill-tag strong">AWS Lambda</span>
-            <span class="skill-tag strong">AWS S3 / EC2</span>
+            <span class="skill-tag strong">AWS ECS / EC2 / S3</span>
             <span class="skill-tag strong">Azure</span>
             <span class="skill-tag">Distributed Batch Processing</span>
             <span class="skill-tag">Async Processing</span>
-            <span class="skill-tag">Docker</span>
+            <span class="skill-tag strong">Docker</span>
+            <span class="skill-tag">GitHub Actions CI</span>
           </div>
         </div>
 
@@ -331,80 +410,6 @@
     </div>
   </section>
 
-  <!-- BLOG -->
-  <section id="blog" class="section">
-    <div class="container">
-      <p class="section-label">Writing</p>
-      <h2 class="section-title">Technical Blog</h2>
-      <p class="section-subtitle">Notes on things I've run into while building. No fluff.</p>
-      <p style="color: var(--text-secondary); font-size: 15px; margin-top: -8px; margin-bottom: 48px;">I write short notes based on real issues I face while building LLM systems, especially around RAG, prompts, and evaluation.</p>
-
-      <div class="blog-grid">
-
-        <div class="blog-card">
-          <div class="blog-tag">LLM Evaluation</div>
-          <div class="blog-title">Why TinyLlama Failed Where Qwen Succeeded: A Model Comparison Story</div>
-          <p class="blog-summary">Intent accuracy dropped from 91% to 28% by switching models. What that gap actually tells you about model selection for structured output tasks — and why benchmarks miss it.</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">Based on real model evaluation I ran while building the Fleet Classifier</p>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top: 12px;">
-            <span class="blog-coming-soon">Coming soon</span>
-          </div>
-        </div>
-
-        <div class="blog-card">
-          <div class="blog-tag">Prompt Engineering</div>
-          <div class="blog-title">The System Prompt is an API Contract: How to Design It Like One</div>
-          <p class="blog-summary">Your system prompt is not a suggestion. What I learned treating it like a schema that enforces behaviour, output types, and failure modes — not just instructions.</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">Learned while building structured output pipelines in production</p>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top: 12px;">
-            <span class="blog-coming-soon">Coming soon</span>
-          </div>
-        </div>
-
-        <div class="blog-card">
-          <div class="blog-tag">Agents</div>
-          <div class="blog-title">LangGraph vs Raw LangChain: When the State Machine Actually Matters</div>
-          <p class="blog-summary">Most tutorials show the happy path. What changes when a tool fails mid-graph, a branch needs to loop, or two nodes write to the same state key at once.</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">Based on real agentic workflow experience</p>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top: 12px;">
-            <span class="blog-coming-soon">Coming soon</span>
-          </div>
-        </div>
-
-        <div class="blog-card">
-          <div class="blog-tag">RAG</div>
-          <div class="blog-title">Why Your RAG Pipeline Has a Chunking Problem (And How to Diagnose It)</div>
-          <p class="blog-summary">Retrieval quality rarely breaks at the embedding model. It breaks at the boundaries. What I found while debugging a RAG pipeline where the right chunk existed but never came back.</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">Based on real RAG pipeline experiments</p>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top: 12px;">
-            <span class="blog-coming-soon">Coming soon</span>
-          </div>
-        </div>
-
-        <div class="blog-card">
-          <div class="blog-tag">Model Steering</div>
-          <div class="blog-title">Hallucination Is a Structural Problem: Five Techniques That Actually Help</div>
-          <p class="blog-summary">Temperature tuning and "be accurate" prompts don't fix it. What I tested while working on activation steering and structured outputs — grounding, schema enforcement, explicit uncertainty.</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">Learned while testing model behaviour on real inputs</p>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top: 12px;">
-            <span class="blog-coming-soon">Coming soon</span>
-          </div>
-        </div>
-
-        <div class="blog-card">
-          <div class="blog-tag">Architecture</div>
-          <div class="blog-title">Building AI Systems That Fail Gracefully: Lessons From Production</div>
-          <p class="blog-summary">A system that returns wrong JSON silently is worse than one that errors loudly. What I noticed while handling edge cases in production LLM pipelines — and how to design for it.</p>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 8px; font-style: italic;">Based on production AI work at Accenture</p>
-          <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top: 12px;">
-            <span class="blog-coming-soon">Coming soon</span>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
   <!-- CONTACT -->
   <section id="contact" class="section">
     <div class="container">
@@ -414,19 +419,10 @@
       <div class="contact-grid">
         <div>
           <p style="color: var(--text-secondary); font-size: 16px; line-height: 1.8; margin-bottom: 8px;">
-            I'm actively looking for roles as an AI Engineer / Generative AI Engineer / Applied ML Engineer.
+            The quickest way to reach me is email. I'm happy to compare notes on retrieval quality, agent reliability, or getting an LLM prototype into production.
           </p>
-          <p style="color: var(--text-secondary); font-size: 16px; line-height: 1.8; margin-bottom: 8px;">
-            I'm most interested in teams building production-oriented AI systems, focusing on reliability, scalability, and real-world impact.
-          </p>
-          <p style="color: var(--text-secondary); font-size: 16px; line-height: 1.8; margin-bottom: 8px;">
-            I enjoy working across the full pipeline: model selection, prompt design, evaluation, and deployment.
-          </p>
-          <p style="color: var(--text-secondary); font-size: 16px; line-height: 1.8; margin-bottom: 4px;">
-            Reach me at <a href="mailto:roshanmishra2003@gmail.com" style="color: var(--accent);">roshanmishra2003@gmail.com</a>
-          </p>
-          <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 24px;">
-            Open to discussions around AI systems, LLM applications, and agent-based workflows.
+          <p style="color: var(--text-secondary); font-size: 16px; line-height: 1.8; margin-bottom: 24px;">
+            <a href="mailto:roshanmishra2003@gmail.com" style="color: var(--accent);">roshanmishra2003@gmail.com</a>
           </p>
           <div class="contact-links">
             <a href="https://github.com/RoshanMishra0" class="contact-link" target="_blank" rel="noopener">
@@ -452,18 +448,16 @@
 
         <div>
           <div class="availability-card">
-            <div class="availability-title">Open to Opportunities</div>
+            <div class="availability-title">What I work on</div>
             <p class="availability-body">
-              Looking for roles focused on building and shipping AI systems. I'm particularly interested in teams where I can own the full pipeline, from model selection and prompt design to evaluation and deployment.
+              The problems I know best, from three years of shipping them:
             </p>
-            <div class="role-tags">
-              <span class="tag accent">AI Engineer</span>
-              <span class="tag accent">GenAI Engineer</span>
-              <span class="tag accent">Applied ML Engineer</span>
-              <span class="tag">LLM Engineer</span>
-              <span class="tag">Agentic AI</span>
-              <span class="tag">MLOps</span>
-            </div>
+            <ul class="focus-list">
+              <li><strong>Retrieval quality.</strong> Finding out why a RAG system returns the wrong chunk, and measuring the fix.</li>
+              <li><strong>Agentic workflows.</strong> Multi-step automation with structured outputs, retries and checkpoints.</li>
+              <li><strong>Evaluation.</strong> Test sets, held-out runs and failure analysis for LLM features.</li>
+              <li><strong>Small local models.</strong> Structured tasks on self-hosted models when data cannot leave.</li>
+            </ul>
           </div>
         </div>
       </div>
@@ -474,7 +468,7 @@
   <footer>
     <div class="container">
       <div class="footer-inner">
-        <span class="footer-copy">© 2025 Roshan Mishra. Built with HTML, CSS, and real project work.</span>
+        <span class="footer-copy">© 2026 Roshan Mishra</span>
         <div style="display:flex; gap:16px;">
           <a href="https://github.com/RoshanMishra0" style="color: var(--text-muted); font-size: 13px;" target="_blank" rel="noopener">GitHub</a>
           <a href="https://www.linkedin.com/in/roshan-m-903779167/" style="color: var(--text-muted); font-size: 13px;" target="_blank" rel="noopener">LinkedIn</a>
